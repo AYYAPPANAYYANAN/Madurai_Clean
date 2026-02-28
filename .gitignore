@@ -1,0 +1,26 @@
+# --- Python Environment ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# --- Streamlit Specific ---
+.streamlit/secrets.toml
+.streamlit/config.toml
+
+# --- AI Models & Large Files ---
+*.pt
+*.pth
+*.bin
+# If you download CLIP locally to a folder:
+models/
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
+
+# --- User Data / Temporary Files ---
+*.log
+temp_image.png
