@@ -538,7 +538,7 @@ else:
                 
                 # 👇 PUT YOUR FREE GROQ API KEY HERE 👇
                # Replace the hardcoded key with a reference to your secrets
-groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"]) 
+                groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"]) 
                 
                 # 3. The "Architect Guardrail" (System Instruction)
                 env_persona = """
@@ -601,3 +601,4 @@ groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
         else: st.dataframe(pd.DataFrame(user_history), use_container_width=True, hide_index=True)
 
         
+
