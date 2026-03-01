@@ -537,7 +537,8 @@ else:
                 from groq import Groq
                 
                 # 👇 PUT YOUR FREE GROQ API KEY HERE 👇
-                groq_client = Groq(api_key="Your_Groq_API_Key_Here") 
+               # Replace the hardcoded key with a reference to your secrets
+groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"]) 
                 
                 # 3. The "Architect Guardrail" (System Instruction)
                 env_persona = """
@@ -598,4 +599,5 @@ else:
         user_history = [log for log in st.session_state.activity_log if log["User"] == st.session_state.current_user]
         if not user_history: st.info("No network activity recorded.")
         else: st.dataframe(pd.DataFrame(user_history), use_container_width=True, hide_index=True)
+
         
