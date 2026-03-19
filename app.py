@@ -167,7 +167,7 @@ current_theme = themes[st.session_state.theme]
 
 t = {
     'English': {
-        'title': 'Smart City', 'subtitle': 'Multimodal AI Waste Management • Smart City Protocol',
+        'title': 'SMART CITY', 'subtitle': 'Multimodal AI Waste Management • Smart City Protocol',
         'tabs': ["📲 CITIZEN PORTAL", "📊 COMMAND CENTER", "📍 ANALYTICS", "🤖 AI ASSISTANT", "⚙️ SETTINGS"],
         'report': 'Report New Incident', 'analyze': '🚀 INITIATE MULTIMODAL SCAN',
         'leaderboard': 'City Leaderboard', 'pending': 'ACTIVE ALERTS',
