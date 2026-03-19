@@ -8,3 +8,5 @@ torchvision
 transformers
 streamlit-geolocation
 groq
+requests
+timm
