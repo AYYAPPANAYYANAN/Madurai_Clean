@@ -167,7 +167,7 @@ current_theme = themes[st.session_state.theme]
 
 t = {
     'English': {
-        'title': 'MADURAI CLEAN-AI', 'subtitle': 'Multimodal AI Waste Management • Smart City Protocol',
+        'title': 'Smart City', 'subtitle': 'Multimodal AI Waste Management • Smart City Protocol',
         'tabs': ["📲 CITIZEN PORTAL", "📊 COMMAND CENTER", "📍 ANALYTICS", "🤖 AI ASSISTANT", "⚙️ SETTINGS"],
         'report': 'Report New Incident', 'analyze': '🚀 INITIATE MULTIMODAL SCAN',
         'leaderboard': 'City Leaderboard', 'pending': 'ACTIVE ALERTS',
@@ -176,7 +176,7 @@ t = {
         'desc_label': '📝 Context / Description (Optional)', 'voice_label': '🎙️ Record Voice Memo (Optional)'
     },
     'Tamil': {
-        'title': 'மதுரை CLEAN-AI', 'subtitle': 'மல்டிமோடல் AI கழிவு மேலாண்மை',
+        'title': 'ஸ்மார்ட் நகரம்', 'subtitle': 'மல்டிமோடல் AI கழிவு மேலாண்மை',
         'tabs': ["📲 குடிமக்கள் தளம்", "📊 கட்டுப்பாட்டு மையம்", "📍 பகுப்பாய்வு", "🤖 AI உதவியாளர்", "⚙️ அமைப்புகள்"],
         'report': 'புதிய நிகழ்வை பதிவு செய்', 'analyze': '🚀 AI ஸ்கேனைத் தொடங்கு',
         'leaderboard': 'தரவரிசை', 'pending': 'செயலில் உள்ள எச்சரிக்கைகள்',
