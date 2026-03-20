@@ -209,27 +209,50 @@ st.markdown(f"""
     h1, h2, h3, h4, p, label, .stMarkdown span {{ color: #ededed !important; }}
     
     /* 2. SLEEK BRANDING */
-    .header-container {{
-        text-align: center; padding: 4rem 0 2rem 0;
-        background: transparent !important; border: none !important;
-    }}
+    /* --- 💎 PREMIUM BRANDING ENHANCEMENT --- */
+    .header-container {
+        text-align: center; 
+        padding: 5rem 0 3rem 0;
+        background: transparent !important;
+    }
     
-    .brand-text {{ 
+    .brand-text { 
         font-family: 'Outfit', sans-serif;
-        background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.7) 100%);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        text-shadow: 0px 10px 40px rgba(255,255,255,0.15);
-        letter-spacing: -0.05em;
-        line-height: 1.1;
-    }}
+        font-weight: 900;
+        font-size: 4.5rem !important; /* Larger, more dominant */
+        background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.6) 100%);
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.06em; /* Tighter letter spacing for that pro look */
+        line-height: 0.9;
+        filter: drop-shadow(0px 15px 30px rgba(255,255,255,0.1));
+        animation: breath 4s ease-in-out infinite;
+    }
     
-    .subtitle-text {{ 
-        color: {current_theme['primary']} !important; 
-        letter-spacing: 0.25em; 
-        font-weight: 700;
+    .subtitle-text { 
+        color: #94a3b8 !important; /* Sleek slate grey */
+        letter-spacing: 0.4em; 
+        font-weight: 800;
+        font-size: 0.65rem !important;
         font-family: 'Outfit', sans-serif;
-        text-shadow: 0 0 20px {current_theme['glow']};
-    }}
+        margin-top: 1rem;
+        text-transform: uppercase;
+        opacity: 0.8;
+    }
+
+    /* Subtle breathing animation for the logo text */
+    @keyframes breath {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.85; transform: scale(0.995); }
+    }
+
+    /* Custom style for the Logo Icon specifically */
+    .logo-icon {
+        font-size: 3.5rem;
+        margin-bottom: 10px;
+        display: block;
+        filter: drop-shadow(0 0 15px {current_theme['glow']});
+    }
 
     /* 3. BENTO BOX CARDS (Glassmorphism + Ultra-thin borders) */
     .auth-card, .stat-card, .glass-panel {{
@@ -510,11 +533,12 @@ else:
         </script>
         """, height=205)
 
-    # MAIN HEADER
+   # MAIN HEADER
     st.markdown(f"""
         <div class="header-container">
-           <h1 class="text-4xl md:text-6xl font-black brand-text tracking-tighter">{lang['title']}</h1>
-            <p class="subtitle-text font-bold text-xs mt-3 uppercase">{lang['subtitle']}</p>
+            <span class="logo-icon">🏙️</span>
+            <h1 class="brand-text">SMART CITY AI</h1>
+            <p class="subtitle-text">Forensic Waste Protocol • Madurai Sector</p>
         </div>
     """, unsafe_allow_html=True)
 
