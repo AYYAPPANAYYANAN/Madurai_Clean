@@ -1,3 +1,5 @@
+from pydoc import text
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -188,16 +190,23 @@ t = {
 lang = t[st.session_state.lang]
 
 # --- 4. ADVANCED DARK CSS INJECTION ---
+# --- 4. ADVANCED DARK CSS INJECTION ---
 st.markdown(f"""
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=Inter:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600&display=swap');
     
+    /* 0. CUSTOM DARK SCROLLBAR */
+    ::-webkit-scrollbar {{ width: 8px; height: 8px; }}
+    ::-webkit-scrollbar-track {{ background: #000000; }}
+    ::-webkit-scrollbar-thumb {{ background: rgba(255,255,255,0.1); border-radius: 10px; transition: all 0.3s; }}
+    ::-webkit-scrollbar-thumb:hover {{ background: rgba(255,255,255,0.25); }}
+
     /* 1. DEEP BLACK CANVAS (Vercel/Linear Vibe) */
     .stApp, [data-testid="stAppViewContainer"] {{
         background-color: #000000 !important;
         background-image: 
-            radial-gradient(circle at 50% -20%, rgba(30, 30, 35, 0.6) 0%, transparent 60%),
+            radial-gradient(circle at 50% -20%, rgba(30, 30, 35, 0.5) 0%, transparent 60%),
             linear-gradient(to bottom, #000000 0%, #050505 100%);
         color: #ededed !important; 
         font-family: 'Inter', sans-serif;
@@ -209,101 +218,107 @@ st.markdown(f"""
     h1, h2, h3, h4, p, label, .stMarkdown span {{ color: #ededed !important; }}
     
     /* 2. SLEEK BRANDING */
-    /* --- 💎 PREMIUM BRANDING ENHANCEMENT --- */
-    .header-container {
+    .header-container {{
         text-align: center; 
         padding: 5rem 0 3rem 0;
         background: transparent !important;
-    }
+    }}
     
-    .brand-text { 
+    .brand-text {{ 
         font-family: 'Outfit', sans-serif;
         font-weight: 900;
-        font-size: 4.5rem !important; /* Larger, more dominant */
-        background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.6) 100%);
+        font-size: 4.8rem !important;
+        background: linear-gradient(180deg, #ffffff 0%, rgba(200,200,210,0.7) 100%);
         -webkit-background-clip: text; 
         -webkit-text-fill-color: transparent;
-        letter-spacing: -0.06em; /* Tighter letter spacing for that pro look */
+        letter-spacing: -0.05em;
         line-height: 0.9;
-        filter: drop-shadow(0px 15px 30px rgba(255,255,255,0.1));
+        filter: drop-shadow(0px 20px 40px rgba(255,255,255,0.15));
         animation: breath 4s ease-in-out infinite;
-    }
-    
-    .subtitle-text { 
-        color: #94a3b8 !important; /* Sleek slate grey */
-        letter-spacing: 0.4em; 
-        font-weight: 800;
-        font-size: 0.65rem !important;
+    }}
+
+    .subtitle-text {{
+        color: #94a3b8 !important;
+        letter-spacing: 0.35em;
+        font-weight: 700;
+        font-size: 0.7rem !important;
         font-family: 'Outfit', sans-serif;
-        margin-top: 1rem;
         text-transform: uppercase;
-        opacity: 0.8;
-    }
+        margin-top: 1rem;
+        opacity: 0.85;
+    }}
 
-    /* Subtle breathing animation for the logo text */
-    @keyframes breath {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.85; transform: scale(0.995); }
-    }
+    @keyframes breath {{
+        0%, 100% {{ opacity: 1; transform: scale(1); filter: drop-shadow(0px 20px 40px rgba(255,255,255,0.15)); }}
+        50% {{ opacity: 0.85; transform: scale(0.995); filter: drop-shadow(0px 10px 20px rgba(255,255,255,0.05)); }}
+    }}
 
-    /* Custom style for the Logo Icon specifically */
-    .logo-icon {
+    .logo-icon {{
         font-size: 3.5rem;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         display: block;
-        filter: drop-shadow(0 0 15px {current_theme['glow']});
-    }
+        filter: drop-shadow(0 0 20px {current_theme['glow']});
+    }}
 
-    /* 3. BENTO BOX CARDS (Glassmorphism + Ultra-thin borders) */
+    /* 3. BENTO BOX CARDS (Volumetric Glassmorphism) */
+    @keyframes floatIn {{
+        0% {{ opacity: 0; transform: translateY(20px); }}
+        100% {{ opacity: 1; transform: translateY(0); }}
+    }}
+
     .auth-card, .stat-card, .glass-panel {{
-        background: rgba(15, 15, 17, 0.4) !important; 
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(255, 255, 255, 0.06); 
+        background: linear-gradient(145deg, rgba(20, 20, 22, 0.7), rgba(10, 10, 12, 0.4)) !important;
+        backdrop-filter: blur(32px);
+        -webkit-backdrop-filter: blur(32px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-top: 1px solid rgba(255, 255, 255, 0.12); /* Simulates light hitting the top edge */
         border-radius: 28px;
-        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), inset 0 1px 0 0 rgba(255,255,255,0.05);
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.8);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        animation: floatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }}
     
     .stat-card {{ padding: 1.5rem 2rem; text-align: left; }}
     .stat-card:hover {{ 
-        transform: translateY(-5px); 
-        border-color: rgba(255, 255, 255, 0.15); 
-        background: rgba(25, 25, 28, 0.6) !important;
-        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.9), 0 0 40px {current_theme['glow']}; 
+        transform: translateY(-5px) scale(1.01); 
+        border-color: rgba(255, 255, 255, 0.2); 
+        background: linear-gradient(145deg, rgba(30, 30, 35, 0.8), rgba(15, 15, 18, 0.6)) !important;
+        box-shadow: 0 25px 50px -10px rgba(0,0,0,0.9), 0 0 30px {current_theme['glow']}; 
     }}
-    .stat-card h2 {{ color: #ffffff !important; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 2.5rem !important; margin-top: 0.2rem;}}
-    .stat-card p {{ color: #888888 !important; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;}}
+    .stat-card h2 {{ color: #ffffff !important; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 2.8rem !important; margin-top: 0.2rem; line-height: 1.1;}}
+    .stat-card p {{ color: #a1a1aa !important; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; margin: 0;}}
 
     /* 4. DRAG & DROP ZONE */
     [data-testid="stFileUploadDropzone"] {{
         background: rgba(15, 15, 17, 0.5) !important; 
-        border: 1px dashed rgba(255,255,255,0.15) !important;
+        border: 1px dashed rgba(255,255,255,0.2) !important;
         border-radius: 24px; padding: 3rem !important; transition: all 0.3s ease;
     }}
     [data-testid="stFileUploadDropzone"]:hover {{
         border-color: {current_theme['primary']} !important;
         background: rgba(25, 25, 28, 0.8) !important;
-        box-shadow: 0 0 30px {current_theme['glow']};
+        box-shadow: 0 0 30px {current_theme['glow']}, inset 0 0 20px rgba(0,0,0,0.5);
     }}
     
-    /* 5. INPUTS & TEXT AREAS (iOS Pill Style) */
+    /* 5. INPUTS & TEXT AREAS (Tactile Inputs) */
     .stTextArea textarea, .stChatInput input, .stTextInput input {{
-        background: rgba(20, 20, 22, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: rgba(15, 15, 17, 0.7) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
         color: #ffffff !important; border-radius: 20px; padding: 1.2rem;
-        transition: all 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         font-family: 'Inter', sans-serif;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
     }}
     .stTextArea textarea:focus, .stChatInput input:focus, .stTextInput input:focus {{
         border-color: {current_theme['primary']} !important; 
-        background: rgba(30, 30, 35, 0.9) !important;
-        box-shadow: 0 0 0 3px {current_theme['glow']} !important;
+        background: rgba(25, 25, 28, 0.9) !important;
+        box-shadow: 0 0 0 3px {current_theme['glow']}, inset 0 2px 5px rgba(0,0,0,0.2) !important;
+        transform: translateY(-2px);
     }}
 
-    /* 6. BUTTONS (Sleek Apple-like) */
+    /* 6. BUTTONS (Sleek Apple-like with active state) */
     .stButton>button {{
-        border-radius: 999px; /* Absolute pill shape */
+        border-radius: 999px; 
         background: #ffffff !important; 
         border: 1px solid #ffffff !important;
         color: #000000 !important; 
@@ -313,8 +328,11 @@ st.markdown(f"""
     }}
     .stButton>button:hover {{ 
         transform: scale(1.02);
-        background: #e0e0e0 !important;
-        box-shadow: 0 8px 20px rgba(255,255,255,0.15); 
+        background: #e2e8f0 !important;
+        box-shadow: 0 8px 25px rgba(255,255,255,0.2); 
+    }}
+    .stButton>button:active {{
+        transform: scale(0.97); /* Physical press effect */
     }}
     .stButton>button p {{ color: inherit !important; font-weight: inherit !important; }}
     
@@ -323,49 +341,56 @@ st.markdown(f"""
         background: {current_theme['primary']} !important;
         border-color: {current_theme['primary']} !important;
         color: #ffffff !important;
-        box-shadow: 0 4px 15px {current_theme['glow']};
+        box-shadow: 0 6px 20px {current_theme['glow']};
     }}
     button[data-testid="baseButton-primary"]:hover {{
-        box-shadow: 0 8px 25px {current_theme['glow']};
-        filter: brightness(1.2);
+        box-shadow: 0 10px 30px {current_theme['glow']};
+        filter: brightness(1.15);
     }}
     
     /* 7. FLOATING iOS-STYLE TABS */
     [data-testid="stTabs"] {{ padding-top: 1rem; }}
     [data-testid="stTabs"] [data-baseweb="tab-list"] {{
-        gap: 0.5rem; justify-content: center; width: fit-content; margin: 0 auto 2rem auto;
-        background: rgba(20, 20, 22, 0.6); border-radius: 99px; padding: 0.4rem;
-        border: 1px solid rgba(255,255,255,0.05);
+        gap: 0.5rem; justify-content: center; width: fit-content; margin: 0 auto 2.5rem auto;
+        background: rgba(15, 15, 17, 0.8); border-radius: 99px; padding: 0.5rem;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        backdrop-filter: blur(20px);
     }}
     [data-testid="stTabs"] button[role="tab"] {{
-        padding: 0.6rem 1.5rem; font-weight: 500; font-size: 0.85rem;
+        padding: 0.7rem 1.8rem; font-weight: 600; font-size: 0.85rem;
         border-radius: 99px; background: transparent; border: none;
-        color: #888888 !important; transition: all 0.3s ease;
+        color: #71717a !important; transition: all 0.3s ease;
+        letter-spacing: 0.02em;
     }}
     [data-testid="stTabs"] button[role="tab"]:hover {{
-        color: #ffffff !important;
+        color: #e4e4e7 !important;
     }}
     [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {{
-        background: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.12);
         color: #ffffff !important;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }}
     
     /* Map Container Fix */
     [data-testid="stDeckGlJsonChart"] {{
-        border-radius: 20px; overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 24px; overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }}
     </style>
 """, unsafe_allow_html=True)
-
+# ==========================================
+# 🛑 SECURE AUTHENTICATION SCREEN
+# ==========================================
 # ==========================================
 # 🛑 SECURE AUTHENTICATION SCREEN
 # ==========================================
 if st.session_state.current_user is None:
     st.markdown(f"""
         <div class="header-container">
-            <h1 class="text-4xl md:text-6xl font-black brand-text tracking-tighter">🏙️ {lang['title']}</h1>
+            <h1 class="brand-text">SMART CITY AI</h1>
+            <p class="subtitle-text">SECURE ACCESS PROTOCOL</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -943,5 +968,8 @@ else:
         st.markdown("<hr style='border-color: rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
         st.markdown(f"<h4 style='font-weight: 800; color: #f8fafc;'>{lang['history_title']}</h4>", unsafe_allow_html=True)
         user_history = [log for log in st.session_state.activity_log if log["User"] == st.session_state.current_user]
-        if not user_history: st.info("No network activity recorded.")
-        else: st.dataframe(pd.DataFrame(user_history), use_container_width=True, hide_index=True)
+        
+        if not user_history: 
+            st.info("No network activity recorded.")
+        else: 
+            st.dataframe(pd.DataFrame(user_history), use_container_width=True, hide_index=True)
