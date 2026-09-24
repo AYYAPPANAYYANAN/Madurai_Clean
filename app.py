@@ -2641,7 +2641,7 @@ def render_settings_enterprise() -> None:
 def render_enterprise_login() -> None:
     st.markdown(
         """
-        <div class="login-page">
+        <div class="login-shell">
             <div class="login-brand">
                 <div class="login-logo">♻</div>
                 <div>
@@ -2651,128 +2651,142 @@ def render_enterprise_login() -> None:
                     </div>
                 </div>
             </div>
+            <div class="login-trust">
+                <span class="trust-dot"></span>
+                Secure municipal workspace
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    left, center, right = st.columns(
-        [1, 1.05, 1]
-    )
+    left, center, right = st.columns([1, 1.08, 1])
 
     with center:
-        if st.session_state.auth_mode == "login":
+        with st.container(border=True):
             st.markdown(
                 """
-                <div class="login-card-enterprise">
-                    <h2>Sign in</h2>
-                    <p>Access the CleanAI operations workspace.</p>
+                <div class="login-card-header">
+                    <div class="login-card-kicker">WELCOME BACK</div>
+                    <h2>Sign in to CleanAI</h2>
+                    <p>
+                        Access incident reporting, AI analysis,
+                        operations, and environmental analytics.
+                    </p>
+                </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            email = st.text_input(
-                "Email",
-                placeholder="admin@madurai.com",
-            )
+            if st.session_state.auth_mode == "login":
+                email = st.text_input(
+                    "Email address",
+                    placeholder="admin@madurai.com",
+                    key="login_email",
+                )
 
-            password = st.text_input(
-                "Password",
-                type="password",
-            )
+                password = st.text_input(
+                    "Password",
+                    type="password",
+                    placeholder="Enter your password",
+                    key="login_password",
+                )
 
-            if st.button(
-                "Sign in",
-                type="primary",
-                use_container_width=True,
-            ):
-                if (
-                    email in st.session_state.users_db
-                    and st.session_state.users_db[email] == password
+                st.markdown(
+                    '<div class="login-help">Use your registered CleanAI account to continue.</div>',
+                    unsafe_allow_html=True,
+                )
+
+                if st.button(
+                    "Sign in",
+                    type="primary",
+                    use_container_width=True,
+                    key="login_submit",
                 ):
-                    st.session_state.current_user = email
-                    st.rerun()
-                else:
-                    st.error(
-                        "Invalid email or password."
-                    )
+                    if (
+                        email in st.session_state.users_db
+                        and st.session_state.users_db[email] == password
+                    ):
+                        st.session_state.current_user = email
+                        st.rerun()
+                    else:
+                        st.error("The email or password is incorrect.")
 
-            if st.button(
-                "Create local demo account",
-                use_container_width=True,
-            ):
-                st.session_state.auth_mode = "signup"
-                st.rerun()
+                st.markdown(
+                    '<div class="or-divider"><span>OR</span></div>',
+                    unsafe_allow_html=True,
+                )
 
-            st.markdown(
-                "</div>",
-                unsafe_allow_html=True,
-            )
-
-        else:
-            st.markdown(
-                """
-                <div class="login-card-enterprise">
-                    <h2>Create account</h2>
-                    <p>Create a local development account.</p>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            new_email = st.text_input(
-                "Email",
-                placeholder="user@example.com",
-            )
-
-            new_password = st.text_input(
-                "Password",
-                type="password",
-            )
-
-            confirm_password = st.text_input(
-                "Confirm password",
-                type="password",
-            )
-
-            if st.button(
-                "Create account",
-                type="primary",
-                use_container_width=True,
-            ):
-                if not new_email or "@" not in new_email:
-                    st.error(
-                        "Enter a valid email address."
-                    )
-                elif len(new_password) < 8:
-                    st.error(
-                        "Password must contain at least 8 characters."
-                    )
-                elif new_password != confirm_password:
-                    st.error(
-                        "Passwords do not match."
-                    )
-                elif new_email in st.session_state.users_db:
-                    st.error(
-                        "An account with this email already exists."
-                    )
-                else:
-                    st.session_state.users_db[
-                        new_email
-                    ] = new_password
-                    st.session_state.current_user = new_email
+                if st.button(
+                    "Create a local demo account",
+                    use_container_width=True,
+                    key="open_signup",
+                ):
+                    st.session_state.auth_mode = "signup"
                     st.rerun()
 
-            if st.button(
-                "Back to sign in",
-                use_container_width=True,
-            ):
-                st.session_state.auth_mode = "login"
-                st.rerun()
+            else:
+                new_email = st.text_input(
+                    "Email address",
+                    placeholder="user@example.com",
+                    key="signup_email",
+                )
 
-            st.markdown(
-                "</div>",
-                unsafe_allow_html=True,
-            )
+                new_password = st.text_input(
+                    "Password",
+                    type="password",
+                    placeholder="At least 8 characters",
+                    key="signup_password",
+                )
+
+                confirm_password = st.text_input(
+                    "Confirm password",
+                    type="password",
+                    placeholder="Re-enter your password",
+                    key="signup_confirm_password",
+                )
+
+                if st.button(
+                    "Create account",
+                    type="primary",
+                    use_container_width=True,
+                    key="signup_submit",
+                ):
+                    if not new_email or "@" not in new_email:
+                        st.error("Enter a valid email address.")
+                    elif len(new_password) < 8:
+                        st.error(
+                            "Password must contain at least 8 characters."
+                        )
+                    elif new_password != confirm_password:
+                        st.error("Passwords do not match.")
+                    elif new_email in st.session_state.users_db:
+                        st.error(
+                            "An account with this email already exists."
+                        )
+                    else:
+                        st.session_state.users_db[new_email] = new_password
+                        st.session_state.current_user = new_email
+                        st.rerun()
+
+                if st.button(
+                    "Back to sign in",
+                    use_container_width=True,
+                    key="back_to_login",
+                ):
+                    st.session_state.auth_mode = "login"
+                    st.rerun()
+
+    st.markdown(
+        """
+        <div class="login-footer">
+            <span>Madurai CleanAI</span>
+            <span>•</span>
+            <span>AI-assisted municipal waste management</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # ============================================================
@@ -2786,21 +2800,59 @@ st.markdown(
         :root {{
             --primary: {COLORS["primary"]};
             --primary-dark: {COLORS["primary_dark"]};
-            --text: {COLORS["text"]};
-            --muted: {COLORS["muted"]};
-            --border: {COLORS["border"]};
-            --surface: {COLORS["surface"]};
+            --text: #0F172A;
+            --muted: #64748B;
+            --border: #D9E2EC;
+            --surface: #FFFFFF;
+            --page: #F3F7F5;
         }}
 
+        /* ---------- APP FOUNDATION ---------- */
         .stApp {{
-            background: #F4F7F6;
-            color: var(--text);
+            background:
+                linear-gradient(180deg, #F8FAF9 0%, #F1F5F3 100%) !important;
+            color: var(--text) !important;
+        }}
+
+        [data-testid="stAppViewContainer"] {{
+            background: transparent !important;
+        }}
+
+        [data-testid="stHeader"] {{
+            background: rgba(255,255,255,.96) !important;
+            border-bottom: 1px solid #E2E8F0 !important;
         }}
 
         .main .block-container {{
             max-width: 1440px;
             padding-top: 2rem;
             padding-bottom: 4rem;
+        }}
+
+        /* ---------- GLOBAL TEXT CONTRAST ---------- */
+        .stMarkdown,
+        .stMarkdown p,
+        .stMarkdown span,
+        .stMarkdown div,
+        label,
+        [data-testid="stWidgetLabel"],
+        [data-testid="stWidgetLabel"] p,
+        [data-testid="stWidgetLabel"] span {{
+            color: #334155 !important;
+        }}
+
+        h1, h2, h3, h4, h5, h6 {{
+            color: #0F172A !important;
+        }}
+
+        /* ---------- SIDEBAR ---------- */
+        [data-testid="stSidebar"] {{
+            background: #FFFFFF !important;
+            border-right: 1px solid #D9E2EC !important;
+        }}
+
+        [data-testid="stSidebar"] * {{
+            color: #334155;
         }}
 
         .sidebar-brand {{
@@ -2811,30 +2863,31 @@ st.markdown(
         }}
 
         .sidebar-logo {{
-            width:38px;
-            height:38px;
+            width:40px;
+            height:40px;
             display:flex;
             align-items:center;
             justify-content:center;
             border-radius:10px;
             background:#E8F5EE;
-            color:#146C43;
-            font-size:1.25rem;
+            color:#146C43 !important;
+            font-size:1.3rem;
             font-weight:700;
         }}
 
         .sidebar-name {{
-            color:#0F172A;
-            font-weight:700;
+            color:#0F172A !important;
+            font-weight:750;
             font-size:1.05rem;
         }}
 
         .sidebar-sub {{
-            color:#64748B;
+            color:#64748B !important;
             font-size:.7rem;
             margin-top:1px;
         }}
 
+        /* ---------- PAGE HEADER ---------- */
         .page-title {{
             display:flex;
             justify-content:space-between;
@@ -2845,8 +2898,8 @@ st.markdown(
 
         .page-title h1 {{
             margin:0;
-            color:#0F172A;
-            font-size:1.8rem;
+            color:#0F172A !important;
+            font-size:1.85rem;
             line-height:1.2;
             font-weight:750;
             letter-spacing:-.025em;
@@ -2854,7 +2907,7 @@ st.markdown(
 
         .page-title p {{
             margin:6px 0 0;
-            color:#64748B;
+            color:#64748B !important;
             font-size:.9rem;
         }}
 
@@ -2862,13 +2915,13 @@ st.markdown(
             display:flex;
             align-items:center;
             gap:8px;
-            border:1px solid #D1FAE5;
+            border:1px solid #BBF7D0;
             background:#F0FDF4;
-            color:#166534;
+            color:#166534 !important;
             border-radius:999px;
             padding:7px 12px;
             font-size:.75rem;
-            font-weight:600;
+            font-weight:650;
             white-space:nowrap;
         }}
 
@@ -2879,33 +2932,22 @@ st.markdown(
             background:#16A34A;
         }}
 
+        /* ---------- KPI ---------- */
         .kpi-card {{
             background:#FFFFFF;
-            border:1px solid #E2E8F0;
+            border:1px solid #D9E2EC;
             border-radius:12px;
-            padding:16px 18px;
+            padding:17px 18px;
             min-height:112px;
-            box-shadow:0 1px 2px rgba(15,23,42,.03);
-        }}
-
-        .kpi-top {{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
+            box-shadow:0 2px 6px rgba(15,23,42,.035);
         }}
 
         .kpi-label {{
-            color:#64748B;
+            color:#64748B !important;
             font-size:.72rem;
             font-weight:700;
             text-transform:uppercase;
             letter-spacing:.055em;
-        }}
-
-        .kpi-dot {{
-            width:8px;
-            height:8px;
-            border-radius:50%;
         }}
 
         .kpi-value {{
@@ -2916,40 +2958,178 @@ st.markdown(
         }}
 
         .kpi-helper {{
-            color:#94A3B8;
+            color:#94A3B8 !important;
             font-size:.72rem;
             margin-top:7px;
         }}
 
+        /* ---------- PANELS ---------- */
         .panel-heading {{
             display:flex;
             align-items:center;
             justify-content:space-between;
             gap:14px;
             background:#FFFFFF;
-            border:1px solid #E2E8F0;
+            border:1px solid #D9E2EC;
             border-bottom:0;
             border-radius:12px 12px 0 0;
-            padding:16px 18px 10px;
+            padding:16px 18px 11px;
         }}
 
         .panel-heading h3 {{
             margin:0;
-            color:#0F172A;
+            color:#0F172A !important;
             font-size:1rem;
             font-weight:700;
         }}
 
         .panel-heading p {{
             margin:4px 0 0;
-            color:#64748B;
+            color:#64748B !important;
             font-size:.76rem;
         }}
 
+        /* ---------- WIDGET LABELS / INPUTS ---------- */
+        [data-testid="stWidgetLabel"],
+        [data-testid="stWidgetLabel"] p {{
+            color:#334155 !important;
+            font-size:.82rem !important;
+            font-weight:600 !important;
+        }}
+
+        .stTextInput input,
+        .stTextArea textarea,
+        .stNumberInput input {{
+            background:#FFFFFF !important;
+            color:#0F172A !important;
+            -webkit-text-fill-color:#0F172A !important;
+            border:1px solid #B8C4D1 !important;
+            border-radius:8px !important;
+            caret-color:#0F172A !important;
+        }}
+
+        .stTextInput input::placeholder,
+        .stTextArea textarea::placeholder,
+        .stNumberInput input::placeholder {{
+            color:#94A3B8 !important;
+            opacity:1 !important;
+            -webkit-text-fill-color:#94A3B8 !important;
+        }}
+
+        .stTextInput input:focus,
+        .stTextArea textarea:focus,
+        .stNumberInput input:focus {{
+            border-color:#198754 !important;
+            box-shadow:0 0 0 3px rgba(25,135,84,.12) !important;
+        }}
+
+        /* Password eye button / BaseWeb controls */
+        [data-baseweb="input"] button {{
+            color:#475569 !important;
+            background:#F8FAFC !important;
+            border-left:1px solid #CBD5E1 !important;
+        }}
+
+        /* ---------- BUTTONS ---------- */
+        .stButton > button {{
+            border-radius:8px !important;
+            min-height:2.65rem !important;
+            font-weight:650 !important;
+            border:1px solid #CBD5E1 !important;
+            background:#FFFFFF !important;
+            color:#1E293B !important;
+        }}
+
+        .stButton > button p,
+        .stButton > button span {{
+            color:inherit !important;
+        }}
+
+        .stButton > button:hover {{
+            border-color:#94A3B8 !important;
+            background:#F8FAFC !important;
+            color:#0F172A !important;
+        }}
+
+        .stButton > button[kind="primary"],
+        button[data-testid="baseButton-primary"] {{
+            background:#198754 !important;
+            border-color:#198754 !important;
+            color:#FFFFFF !important;
+        }}
+
+        .stButton > button[kind="primary"] *,
+        button[data-testid="baseButton-primary"] * {{
+            color:#FFFFFF !important;
+        }}
+
+        .stButton > button[kind="primary"]:hover,
+        button[data-testid="baseButton-primary"]:hover {{
+            background:#146C43 !important;
+            border-color:#146C43 !important;
+        }}
+
+        /* ---------- TABS ---------- */
+        [data-testid="stTabs"] [data-baseweb="tab-list"] {{
+            gap:2px;
+            border-bottom:1px solid #D9E2EC;
+            background:transparent;
+        }}
+
+        [data-testid="stTabs"] button[role="tab"] {{
+            color:#64748B !important;
+            font-size:.8rem;
+            font-weight:650;
+            padding:11px 15px;
+        }}
+
+        [data-testid="stTabs"] button[role="tab"] p {{
+            color:inherit !important;
+        }}
+
+        [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {{
+            color:#146C43 !important;
+        }}
+
+        /* ---------- FILE UPLOAD / RADIO / SELECT ---------- */
+        [data-testid="stFileUploaderDropzone"] {{
+            background:#F8FAFC !important;
+            border:1px dashed #B8C4D1 !important;
+            border-radius:10px !important;
+        }}
+
+        [data-testid="stFileUploaderDropzone"] * {{
+            color:#475569 !important;
+        }}
+
+        [data-baseweb="select"] > div {{
+            background:#FFFFFF !important;
+            border-color:#B8C4D1 !important;
+            color:#0F172A !important;
+        }}
+
+        [data-baseweb="select"] * {{
+            color:#334155 !important;
+        }}
+
+        [role="radiogroup"] label,
+        [role="radiogroup"] label p {{
+            color:#334155 !important;
+        }}
+
+        /* ---------- DATAFRAME ---------- */
+        [data-testid="stDataFrame"] {{
+            border:1px solid #D9E2EC;
+            border-radius:10px;
+            overflow:hidden;
+            background:#FFFFFF;
+        }}
+
+        /* ---------- WORKFLOW ---------- */
         .step-badge {{
             border:1px solid #BFDBFE;
             background:#EFF6FF;
-            color:#1D4ED8;
+            color:#1D4ED8 !important;
             border-radius:999px;
             padding:5px 9px;
             font-size:.64rem;
@@ -2961,7 +3141,7 @@ st.markdown(
             gap:12px;
             align-items:flex-start;
             background:#FFFFFF;
-            border:1px solid #E2E8F0;
+            border:1px solid #D9E2EC;
             border-top:0;
             padding:13px 16px;
         }}
@@ -2977,21 +3157,21 @@ st.markdown(
             align-items:center;
             justify-content:center;
             border-radius:7px;
-            background:#F0FDF4;
-            color:#166534;
+            background:#E8F5EE;
+            color:#146C43 !important;
             font-size:.7rem;
             font-weight:700;
             flex:0 0 28px;
         }}
 
         .workflow-title {{
-            color:#1E293B;
+            color:#1E293B !important;
             font-size:.82rem;
             font-weight:700;
         }}
 
         .workflow-description {{
-            color:#64748B;
+            color:#64748B !important;
             font-size:.72rem;
             margin-top:2px;
         }}
@@ -2999,7 +3179,7 @@ st.markdown(
         .location-confirm {{
             background:#F0FDF4;
             border:1px solid #BBF7D0;
-            color:#166534;
+            color:#166534 !important;
             padding:8px 10px;
             border-radius:8px;
             font-size:.75rem;
@@ -3019,35 +3199,36 @@ st.markdown(
         }}
 
         .analysis-note strong {{
-            color:#334155;
+            color:#334155 !important;
         }}
 
         .analysis-note span {{
-            color:#64748B;
+            color:#64748B !important;
         }}
 
         .scope-item {{
             background:#F8FAFC;
-            border:1px solid #E2E8F0;
+            border:1px solid #D9E2EC;
             border-radius:8px;
             padding:9px 10px;
             margin-bottom:7px;
-            color:#334155;
+            color:#334155 !important;
             font-size:.78rem;
         }}
 
+        /* ---------- HEALTH ---------- */
         .health-row {{
             display:flex;
             align-items:center;
             justify-content:space-between;
             border-bottom:1px solid #E2E8F0;
             padding:12px 2px;
-            color:#334155;
+            color:#334155 !important;
             font-size:.8rem;
         }}
 
         .health-ok {{
-            color:#166534;
+            color:#166534 !important;
             background:#F0FDF4;
             border:1px solid #BBF7D0;
             padding:3px 7px;
@@ -3057,7 +3238,7 @@ st.markdown(
         }}
 
         .health-warning {{
-            color:#92400E;
+            color:#92400E !important;
             background:#FFFBEB;
             border:1px solid #FDE68A;
             padding:3px 7px;
@@ -3068,17 +3249,19 @@ st.markdown(
 
         .info-box {{
             background:#F8FAFC;
-            border:1px solid #E2E8F0;
+            border:1px solid #D9E2EC;
             border-radius:10px;
             padding:13px;
-            color:#475569;
+            color:#475569 !important;
             font-size:.77rem;
             line-height:1.6;
         }}
 
-        .login-page {{
-            max-width:560px;
-            margin:80px auto 20px;
+        /* ---------- LOGIN ---------- */
+        .login-shell {{
+            max-width:570px;
+            margin:70px auto 18px;
+            text-align:center;
         }}
 
         .login-brand {{
@@ -3086,110 +3269,150 @@ st.markdown(
             align-items:center;
             justify-content:center;
             gap:13px;
-            margin-bottom:20px;
         }}
 
         .login-logo {{
-            width:48px;
-            height:48px;
+            width:50px;
+            height:50px;
             display:flex;
             align-items:center;
             justify-content:center;
             border-radius:12px;
             background:#E8F5EE;
-            color:#146C43;
+            color:#146C43 !important;
             font-size:1.5rem;
-            font-weight:700;
+            font-weight:750;
+            border:1px solid #CDEDDD;
         }}
 
         .login-title {{
-            font-size:1.45rem;
+            font-size:1.55rem;
             font-weight:750;
-            color:#0F172A;
+            color:#0F172A !important;
+            text-align:left;
         }}
 
         .login-subtitle {{
-            color:#64748B;
-            font-size:.76rem;
+            color:#64748B !important;
+            font-size:.78rem;
             margin-top:2px;
+            text-align:left;
         }}
 
-        .login-card-enterprise {{
-            background:#FFFFFF;
-            border:1px solid #E2E8F0;
-            border-radius:14px;
-            padding:26px;
-            box-shadow:0 10px 30px rgba(15,23,42,.05);
+        .login-trust {{
+            display:inline-flex;
+            align-items:center;
+            gap:7px;
+            margin-top:14px;
+            color:#166534 !important;
+            background:#F0FDF4;
+            border:1px solid #BBF7D0;
+            border-radius:999px;
+            padding:5px 10px;
+            font-size:.68rem;
+            font-weight:650;
         }}
 
-        .login-card-enterprise h2 {{
-            color:#0F172A;
+        .trust-dot {{
+            width:6px;
+            height:6px;
+            background:#16A34A;
+            border-radius:50%;
+        }}
+
+        .login-card-header {{
+            margin-bottom:18px;
+        }}
+
+        .login-card-header h2 {{
+            color:#0F172A !important;
             margin:0;
-            font-size:1.3rem;
+            font-size:1.35rem;
+            font-weight:750;
         }}
 
-        .login-card-enterprise > p {{
-            color:#64748B;
-            font-size:.82rem;
-            margin-top:5px;
-            margin-bottom:20px;
-        }}
-
-        /* Make Streamlit containers visually consistent with the application. */
-        div[data-testid="stVerticalBlockBorderWrapper"] {{
-            border-color:#E2E8F0 !important;
-            border-radius:12px !important;
-        }}
-
-        [data-testid="stDataFrame"] {{
-            border:1px solid #E2E8F0;
-            border-radius:10px;
-            overflow:hidden;
-        }}
-
-        [data-testid="stFileUploaderDropzone"] {{
-            background:#F8FAFC !important;
-            border-color:#CBD5E1 !important;
-            border-radius:10px !important;
-        }}
-
-        .stTextInput input,
-        .stTextArea textarea {{
-            background:#FFFFFF !important;
-            border-color:#CBD5E1 !important;
-            border-radius:8px !important;
-        }}
-
-        .stButton > button {{
-            border-radius:8px !important;
-            font-weight:600 !important;
-        }}
-
-        [data-testid="stTabs"] [data-baseweb="tab-list"] {{
-            gap:4px;
-            border-bottom:1px solid #E2E8F0;
-        }}
-
-        [data-testid="stTabs"] button[role="tab"] {{
+        .login-card-header p {{
+            color:#64748B !important;
             font-size:.8rem;
-            font-weight:600;
+            line-height:1.55;
+            margin:6px 0 0;
         }}
 
+        .login-card-kicker {{
+            color:#198754 !important;
+            font-size:.65rem;
+            font-weight:750;
+            letter-spacing:.1em;
+            margin-bottom:6px;
+        }}
+
+        .login-help {{
+            color:#64748B !important;
+            font-size:.68rem;
+            margin:7px 0 13px;
+        }}
+
+        .or-divider {{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            color:#94A3B8 !important;
+            font-size:.64rem;
+            margin:14px 0;
+        }}
+
+        .or-divider::before,
+        .or-divider::after {{
+            content:"";
+            height:1px;
+            flex:1;
+            background:#E2E8F0;
+        }}
+
+        .login-footer {{
+            display:flex;
+            justify-content:center;
+            gap:8px;
+            color:#94A3B8 !important;
+            font-size:.67rem;
+            margin:18px auto 40px;
+        }}
+
+        /* Streamlit bordered container used by login card */
+        [data-testid="stVerticalBlockBorderWrapper"] {{
+            background:#FFFFFF !important;
+            border:1px solid #D9E2EC !important;
+            border-radius:14px !important;
+            box-shadow:0 12px 32px rgba(15,23,42,.055) !important;
+        }}
+
+        /* ---------- MOBILE ---------- */
         @media (max-width: 800px) {{
+            .main .block-container {{
+                padding:1rem;
+            }}
+
             .page-title {{
                 flex-direction:column;
             }}
+
             .live-status {{
                 align-self:flex-start;
             }}
+
             .analysis-note {{
                 flex-direction:column;
+            }}
+
+            .login-shell {{
+                margin-top:30px;
             }}
         }}
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 
 if st.session_state.current_user is None:
