@@ -1501,21 +1501,1043 @@ Keep answers concise, practical, and informative.
         )
 
 
+
 # ============================================================
-# 18. SETTINGS
+# 18. ENTERPRISE DASHBOARD COMPONENTS
 # ============================================================
 
-def render_settings() -> None:
+def render_kpi(label: str, value: Any, helper: str = "", tone: str = "default") -> None:
+    tone_map = {
+        "default": ("#0F172A", "#64748B"),
+        "green": ("#166534", "#15803D"),
+        "blue": ("#1D4ED8", "#2563EB"),
+        "amber": ("#92400E", "#D97706"),
+        "red": ("#991B1B", "#DC2626"),
+    }
+    value_color, accent = tone_map.get(tone, tone_map["default"])
+
     st.markdown(
-        f'<div class="section-title">{lang["settings_title"]}</div>',
+        f"""
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <span class="kpi-label">{label}</span>
+                <span class="kpi-dot" style="background:{accent};"></span>
+            </div>
+            <div class="kpi-value" style="color:{value_color};">{value}</div>
+            <div class="kpi-helper">{helper}</div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
-    col1, col2 = st.columns(2)
 
-    with col1:
+def render_page_title(title: str, subtitle: str) -> None:
+    st.markdown(
+        f"""
+        <div class="page-title">
+            <div>
+                <h1>{title}</h1>
+                <p>{subtitle}</p>
+            </div>
+            <div class="live-status">
+                <span class="live-dot"></span>
+                System operational
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_sidebar_enterprise() -> None:
+    with st.sidebar:
+        st.markdown(
+            """
+            <div class="sidebar-brand">
+                <div class="sidebar-logo">♻</div>
+                <div>
+                    <div class="sidebar-name">CleanAI</div>
+                    <div class="sidebar-sub">Municipal Intelligence</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.divider()
+
+        st.markdown("#### Workspace")
+        st.caption(st.session_state.current_user)
+
+        if st.button("Sign out", use_container_width=True):
+            st.session_state.current_user = None
+            st.session_state.sos_active = False
+            st.rerun()
+
+        st.divider()
+
+        st.markdown("#### Emergency support")
+        disaster_detected, condition = check_severe_weather()
+
+        if disaster_detected:
+            st.error(f"Weather alert: {condition}")
+        else:
+            st.success(f"Weather: {condition}")
+
+        if st.button(
+            "Request emergency assistance",
+            type="primary",
+            use_container_width=True,
+        ):
+            st.session_state.sos_active = True
+
+        if st.session_state.get("sos_active", False):
+            st.warning(
+                "Emergency channel active. Record a message below."
+            )
+
+            emergency_audio = st.audio_input(
+                "Emergency message",
+            )
+
+            if emergency_audio:
+                current_loc = "Madurai"
+                transcribed_text = (
+                    "User requires immediate medical/evacuation assistance."
+                )
+
+                with st.spinner("Submitting emergency request..."):
+                    sent = send_sos_email(
+                        current_loc,
+                        transcribed_text,
+                    )
+
+                if sent:
+                    st.success("Emergency request submitted.")
+                else:
+                    st.warning(
+                        "Emergency email is not configured."
+                    )
+
+        st.divider()
+        st.caption("Madurai CleanAI")
+        st.caption("Municipal waste intelligence platform")
+
+
+# ============================================================
+# 19. CITIZEN PORTAL — ENTERPRISE UI
+# ============================================================
+
+def render_citizen_enterprise() -> None:
+    render_page_title(
+        "Citizen Portal",
+        "Submit a waste incident for AI-assisted validation and classification.",
+    )
+
+    total_reports = sum(
+        st.session_state.location_reports.values()
+    )
+    total_objects = sum(
+        st.session_state.waste_inventory.values()
+    )
+
+    k1, k2, k3, k4 = st.columns(4)
+
+    with k1:
+        render_kpi(
+            "Active reports",
+            total_reports,
+            "Across submitted locations",
+            "red" if total_reports else "green",
+        )
+    with k2:
+        render_kpi(
+            "Objects detected",
+            total_objects,
+            "Cumulative AI detections",
+            "blue",
+        )
+    with k3:
+        render_kpi(
+            "Locations monitored",
+            len(st.session_state.location_reports),
+            "Reported locations",
+            "amber",
+        )
+    with k4:
+        render_kpi(
+            "Reports today",
+            len(
+                [
+                    x
+                    for x in st.session_state.activity_log
+                    if x["User"] == st.session_state.current_user
+                    and x["Time"].startswith(
+                        datetime.now().strftime("%Y-%m-%d")
+                    )
+                ]
+            ),
+            "Your submitted activity",
+            "green",
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    left, right = st.columns(
+        [1.35, 0.65],
+        gap="large",
+    )
+
+    with left:
+        st.markdown(
+            """
+            <div class="panel-heading">
+                <div>
+                    <h3>New waste incident</h3>
+                    <p>Provide an image and location. AI validation runs before classification.</p>
+                </div>
+                <span class="step-badge">AI VERIFIED</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        input_method = st.radio(
+            "Image source",
+            ["Upload image", "Use camera"],
+            horizontal=True,
+            label_visibility="collapsed",
+        )
+
+        if input_method == "Upload image":
+            uploaded_file = st.file_uploader(
+                "Drop an incident image here",
+                type=["jpg", "jpeg", "png"],
+            )
+        else:
+            uploaded_file = st.camera_input(
+                "Capture incident image"
+            )
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+            landmark = st.text_input(
+                "Location / landmark",
+                placeholder="e.g. Kalavasal Junction",
+            )
+
+        with c2:
+            incident_desc = st.text_input(
+                "Short description",
+                placeholder="e.g. Waste blocking footpath",
+            )
+
+        location_data = streamlit_geolocation()
+
+        if (
+            location_data
+            and location_data.get("latitude") is not None
+        ):
+            st.markdown(
+                f"""
+                <div class="location-confirm">
+                    <span>●</span>
+                    GPS captured: {location_data["latitude"]:.6f},
+                    {location_data["longitude"]:.6f}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        voice_note = st.audio_input(
+            "Optional voice note"
+        )
+
+        st.markdown(
+            '<div class="analysis-note">'
+            "<strong>Processing pipeline</strong>"
+            "<span>Image authenticity → object detection → waste classification → escalation</span>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+        analyze = st.button(
+            "Analyze and submit incident",
+            type="primary",
+            use_container_width=True,
+        )
+
+        if not analyze:
+            return
+
+        if uploaded_file is None:
+            st.error("Please upload or capture an image.")
+            return
+
+        if not landmark.strip():
+            st.error("Please enter the incident location.")
+            return
+
+        try:
+            ai_detector, vision_model, vision_processor, waste_detector = (
+                get_ai_resources()
+            )
+
+            with st.status(
+                "Running incident analysis",
+                expanded=True,
+            ) as status:
+                img = Image.open(uploaded_file)
+                img.thumbnail(
+                    (512, 512),
+                    Image.Resampling.LANCZOS,
+                )
+
+                st.write("1. Validating image authenticity")
+                is_fake, final_fake_confidence = run_image_authentication(
+                    img,
+                    ai_detector,
+                    vision_model,
+                    vision_processor,
+                )
+
+                if is_fake:
+                    fake_confidence = round(
+                        float(final_fake_confidence) * 100,
+                        1,
+                    )
+
+                    status.update(
+                        label="Image validation failed",
+                        state="error",
+                        expanded=False,
+                    )
+
+                    st.error(
+                        f"Synthetic/AI-generated image detected "
+                        f"(confidence: {fake_confidence}%)."
+                    )
+
+                    add_activity(
+                        f"Rejected synthetic image ({fake_confidence}%)",
+                        landmark,
+                        "-20",
+                    )
+                    return
+
+                st.write("2. Detecting individual waste objects")
+
+                item_counts = detect_waste_objects(
+                    img,
+                    waste_detector,
+                )
+
+                total_items = sum(item_counts.values())
+
+                for key, value in item_counts.items():
+                    st.session_state.waste_inventory[key] = (
+                        st.session_state.waste_inventory.get(key, 0)
+                        + value
+                    )
+
+                st.write("3. Classifying waste category")
+
+                detected_category, confidence_score = classify_waste(
+                    img,
+                    vision_model,
+                    vision_processor,
+                )
+
+                is_clean = "Clean" in detected_category
+
+                if incident_desc:
+                    st.write("4. Incident context recorded")
+
+                if voice_note:
+                    st.write("5. Voice note attached")
+
+                status.update(
+                    label="Analysis complete",
+                    state="complete",
+                    expanded=False,
+                )
+
+            # Analysis result panel
+            result_left, result_right = st.columns(
+                [1.3, 0.7]
+            )
+
+            with result_left:
+                if is_clean:
+                    st.success(
+                        f"Clean area detected at {landmark} "
+                        f"({confidence_score}% confidence)."
+                    )
+                else:
+                    st.warning(
+                        f"Waste detected: {detected_category} "
+                        f"({confidence_score}% confidence)."
+                    )
+
+            with result_right:
+                st.metric(
+                    "Objects detected",
+                    total_items,
+                )
+
+            if is_clean:
+                add_activity(
+                    "Verified Clean Area",
+                    landmark,
+                    "+10",
+                )
+                return
+
+            current_count = (
+                st.session_state.location_reports.get(
+                    landmark,
+                    0,
+                )
+                + 1
+            )
+
+            st.session_state.location_reports[
+                landmark
+            ] = current_count
+
+            st.success(
+                lang["success_msg"].format(landmark)
+            )
+
+            # Existing escalation logic: threshold remains 3.
+            if current_count >= 3:
+                st.warning(
+                    f"Recurring issue: {landmark} has "
+                    f"{current_count} reports."
+                )
+
+                email_status = send_escalation_email(
+                    landmark,
+                    detected_category,
+                    current_count,
+                )
+
+                if email_status:
+                    st.info(
+                        "Municipal escalation notification sent."
+                    )
+                else:
+                    st.info(
+                        "Municipal email service is not configured."
+                    )
+
+            add_activity(
+                f"Reported Waste: {detected_category}",
+                landmark,
+                "+50",
+            )
+
+        except Exception as exc:
+            st.error(
+                "Analysis could not be completed. "
+                "Please verify the image and service configuration."
+            )
+            with st.expander("Technical details"):
+                st.exception(exc)
+
+    with right:
+        st.markdown(
+            """
+            <div class="panel-heading">
+                <div>
+                    <h3>How it works</h3>
+                    <p>Existing AI pipeline</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        stages = [
+            ("01", "Image validation", "5-factor authenticity analysis"),
+            ("02", "Object detection", "DETR-based waste object counting"),
+            ("03", "Classification", "CLIP-based waste category"),
+            ("04", "Location tracking", "Incident grouped by location"),
+            ("05", "Escalation", "Existing 3-report threshold"),
+        ]
+
+        for number, title, description in stages:
+            st.markdown(
+                f"""
+                <div class="workflow-row">
+                    <div class="workflow-number">{number}</div>
+                    <div>
+                        <div class="workflow-title">{title}</div>
+                        <div class="workflow-description">{description}</div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+
+# ============================================================
+# 20. OPERATIONS DASHBOARD
+# ============================================================
+
+def render_operations() -> None:
+    render_page_title(
+        "Operations Dashboard",
+        "Monitor incoming waste reports and municipal response activity.",
+    )
+
+    reports = st.session_state.location_reports
+    total_reports = sum(reports.values())
+    locations = len(reports)
+    recurring = sum(
+        1 for value in reports.values() if value >= 3
+    )
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        render_kpi(
+            "Open reports",
+            total_reports,
+            "Submitted waste incidents",
+            "red" if total_reports else "green",
+        )
+
+    with c2:
+        render_kpi(
+            "Affected locations",
+            locations,
+            "Unique reported locations",
+            "amber",
+        )
+
+    with c3:
+        render_kpi(
+            "Recurring issues",
+            recurring,
+            "Locations at escalation threshold",
+            "red" if recurring else "green",
+        )
+
+    with c4:
+        render_kpi(
+            "Response units",
+            22,
+            "Configured operational units",
+            "blue",
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    left, right = st.columns(
+        [1.35, 0.65],
+        gap="large",
+    )
+
+    with left:
+        st.markdown(
+            """
+            <div class="panel-heading">
+                <div>
+                    <h3>Incident map</h3>
+                    <p>Known locations represented in the current dataset.</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        df_madurai = get_location_dataframe()
+        reported_locations = list(reports.keys())
+
+        if reported_locations:
+            live_map_data = df_madurai[
+                df_madurai["Location"].isin(
+                    reported_locations
+                )
+            ].copy()
+
+            if live_map_data.empty:
+                st.info(
+                    "Reports are present for locations outside "
+                    "the current sample map dataset."
+                )
+            else:
+                st.map(
+                    live_map_data,
+                    color="#DC3545",
+                    size=60,
+                )
+        else:
+            st.info(
+                "No active reports. The operations map is clear."
+            )
+            st.map(
+                pd.DataFrame(
+                    {
+                        "lat": [DEFAULT_LAT],
+                        "lon": [DEFAULT_LON],
+                    }
+                ),
+                zoom=11,
+            )
+
+    with right:
+        st.markdown(
+            """
+            <div class="panel-heading">
+                <div>
+                    <h3>Incident queue</h3>
+                    <p>Locations ordered for review.</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if reports:
+            queue = pd.DataFrame(
+                [
+                    {
+                        "Location": location,
+                        "Reports": count,
+                        "Status": (
+                            "Escalation"
+                            if count >= 3
+                            else "Open"
+                        ),
+                    }
+                    for location, count in reports.items()
+                ]
+            ).sort_values(
+                "Reports",
+                ascending=False,
+            )
+
+            st.dataframe(
+                queue,
+                hide_index=True,
+                use_container_width=True,
+            )
+        else:
+            st.info("No incidents in the queue.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown(
+        """
+        <div class="panel-heading">
+            <div>
+                <h3>Recent activity</h3>
+                <p>Latest actions recorded by the application.</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if st.session_state.activity_log:
+        activity = pd.DataFrame(
+            st.session_state.activity_log[-10:][::-1]
+        )
+        st.dataframe(
+            activity,
+            hide_index=True,
+            use_container_width=True,
+        )
+    else:
+        st.info("No activity has been recorded yet.")
+
+
+# ============================================================
+# 21. ANALYTICS DASHBOARD
+# ============================================================
+
+def render_analytics_enterprise() -> None:
+    render_page_title(
+        "Environmental Analytics",
+        "Understand waste composition and incident activity.",
+    )
+
+    inventory = st.session_state.get(
+        "waste_inventory",
+        {},
+    )
+
+    total_scanned = sum(inventory.values())
+
+    if total_scanned == 0:
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            render_kpi(
+                "Objects detected",
+                0,
+                "Awaiting AI scans",
+            )
+        with c2:
+            render_kpi(
+                "Categories",
+                0,
+                "No classified waste yet",
+            )
+        with c3:
+            render_kpi(
+                "Projected carbon cost",
+                "0.00 kg",
+                "Existing project calculation",
+            )
+
+        st.info(
+            "Run an image analysis from the Citizen Portal "
+            "to populate analytics."
+        )
+        return
+
+    df_inv = pd.DataFrame(
+        list(inventory.items()),
+        columns=["Waste Type", "Count"],
+    )
+    df_inv = df_inv[df_inv["Count"] > 0]
+
+    most_common = (
+        df_inv.loc[
+            df_inv["Count"].idxmax(),
+            "Waste Type",
+        ].title()
+        if not df_inv.empty
+        else "N/A"
+    )
+
+    # Existing carbon formula preserved.
+    carbon_offset = total_scanned * 0.45
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        render_kpi(
+            "Objects detected",
+            total_scanned,
+            "Cumulative AI detections",
+            "blue",
+        )
+
+    with c2:
+        render_kpi(
+            "Dominant category",
+            most_common,
+            "Highest detected count",
+            "green",
+        )
+
+    with c3:
+        render_kpi(
+            "Waste categories",
+            len(df_inv),
+            "Categories with detections",
+            "amber",
+        )
+
+    with c4:
+        render_kpi(
+            "Projected carbon cost",
+            f"{carbon_offset:.2f} kg",
+            "Existing project calculation",
+            "red",
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    chart_col, table_col = st.columns(
+        [1.15, 0.85],
+        gap="large",
+    )
+
+    with chart_col:
+        st.markdown(
+            """
+            <div class="panel-heading">
+                <div>
+                    <h3>Waste composition</h3>
+                    <p>Distribution of objects detected by the AI pipeline.</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        fig = px.pie(
+            df_inv,
+            values="Count",
+            names="Waste Type",
+            hole=0.58,
+            color_discrete_sequence=[
+                "#198754",
+                "#2563EB",
+                "#D97706",
+                "#64748B",
+            ],
+        )
+
+        fig.update_traces(
+            textposition="outside",
+            textinfo="percent+label",
+        )
+
+        fig.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            margin=dict(
+                t=20,
+                b=20,
+                l=20,
+                r=20,
+            ),
+            font=dict(
+                color=COLORS["text"],
+            ),
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=-0.15,
+            ),
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+        )
+
+    with table_col:
+        st.markdown(
+            """
+            <div class="panel-heading">
+                <div>
+                    <h3>Detection breakdown</h3>
+                    <p>Current object inventory.</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.dataframe(
+            df_inv.sort_values(
+                "Count",
+                ascending=False,
+            ),
+            hide_index=True,
+            use_container_width=True,
+        )
+
+
+# ============================================================
+# 22. AI ASSISTANT — ENTERPRISE UI
+# ============================================================
+
+def render_ai_enterprise() -> None:
+    render_page_title(
+        "AI Assistant",
+        "Environmental guidance powered by the configured Groq model.",
+    )
+
+    left, right = st.columns(
+        [1.55, 0.45],
+        gap="large",
+    )
+
+    with left:
+        chat_container = st.container(height=500)
+
+        for message in st.session_state.chat_history:
+            with chat_container.chat_message(
+                message["role"]
+            ):
+                st.markdown(message["content"])
+
+        prompt = st.chat_input(
+            "Ask about recycling, waste management, pollution, or sustainability..."
+        )
+
+        if prompt:
+            st.session_state.chat_history.append(
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            )
+
+            with chat_container.chat_message("user"):
+                st.markdown(prompt)
+
+            try:
+                from groq import Groq
+
+                api_key = get_secret("GROQ_API_KEY")
+
+                if not api_key:
+                    st.error(
+                        "GROQ_API_KEY is not configured in Streamlit Secrets."
+                    )
+                    return
+
+                groq_client = Groq(
+                    api_key=api_key
+                )
+
+                env_persona = """
+You are CleanAI, an environmental assistant for Madurai city.
+
+Only answer questions related to:
+1. Ecosystem and nature preservation.
+2. Waste management and pollution control.
+3. Reduce, Reuse, Recycle.
+4. Sustainable living and green energy.
+
+For unrelated questions, politely explain that this assistant
+is limited to environmental topics.
+
+Keep answers concise, practical, and informative.
+"""
+
+                api_messages = [
+                    {
+                        "role": "system",
+                        "content": env_persona,
+                    }
+                ]
+
+                for message in st.session_state.chat_history:
+                    api_messages.append(
+                        {
+                            "role": message["role"],
+                            "content": message["content"],
+                        }
+                    )
+
+                with chat_container.chat_message(
+                    "assistant"
+                ):
+                    with st.spinner(
+                        "Generating response..."
+                    ):
+                        completion = (
+                            groq_client
+                            .chat
+                            .completions
+                            .create(
+                                messages=api_messages,
+                                model="llama-3.1-8b-instant",
+                                temperature=0.5,
+                                max_tokens=1024,
+                            )
+                        )
+
+                        response_text = (
+                            completion
+                            .choices[0]
+                            .message
+                            .content
+                        )
+
+                        st.markdown(
+                            response_text
+                        )
+
+                st.session_state.chat_history.append(
+                    {
+                        "role": "assistant",
+                        "content": response_text,
+                    }
+                )
+
+            except ImportError:
+                st.error(
+                    "Install the Groq package with: pip install groq"
+                )
+            except Exception:
+                st.error(
+                    "The AI assistant is temporarily unavailable."
+                )
+
+    with right:
+        st.markdown(
+            """
+            <div class="panel-heading">
+                <div>
+                    <h3>Assistant scope</h3>
+                    <p>Configured knowledge areas</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        for item in [
+            "Waste management",
+            "Recycling",
+            "Pollution control",
+            "Sustainable living",
+            "Green energy",
+        ]:
+            st.markdown(
+                f'<div class="scope-item">✓ {item}</div>',
+                unsafe_allow_html=True,
+            )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        if st.button(
+            "Clear conversation",
+            use_container_width=True,
+        ):
+            st.session_state.chat_history = [
+                {
+                    "role": "assistant",
+                    "content": (
+                        "Welcome to Madurai CleanAI. "
+                        "How can I help with an environmental question?"
+                    ),
+                }
+            ]
+            st.rerun()
+
+
+# ============================================================
+# 23. SETTINGS / ADMIN
+# ============================================================
+
+def render_settings_enterprise() -> None:
+    render_page_title(
+        "Settings",
+        "Application preferences, service configuration status, and activity.",
+    )
+
+    left, right = st.columns(
+        [0.8, 1.2],
+        gap="large",
+    )
+
+    with left:
+        st.markdown(
+            """
+            <div class="panel-heading">
+                <div>
+                    <h3>Preferences</h3>
+                    <p>Personalize the application.</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
         new_lang = st.selectbox(
-            "System language",
+            "Language",
             ["English", "Tamil"],
             index=["English", "Tamil"].index(
                 st.session_state.lang
@@ -1526,64 +2548,677 @@ def render_settings() -> None:
             st.session_state.lang = new_lang
             st.rerun()
 
-    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+
         st.markdown(
-            '<div class="card"><strong>Application status</strong><br>'
-            '<span class="small-muted">'
-            "Normal enterprise interface • AI services available on demand"
-            "</span></div>",
+            """
+            <div class="info-box">
+                <strong>Current architecture</strong><br>
+                Streamlit UI → AI inference services → incident state → analytics
+            </div>
+            """,
             unsafe_allow_html=True,
         )
 
-    st.divider()
+    with right:
+        st.markdown(
+            """
+            <div class="panel-heading">
+                <div>
+                    <h3>Service health</h3>
+                    <p>Configuration status visible to the operator.</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        services = [
+            (
+                "Groq AI Assistant",
+                bool(get_secret("GROQ_API_KEY")),
+            ),
+            (
+                "Weather service",
+                bool(get_secret("OPENWEATHERMAP_API_KEY")),
+            ),
+            (
+                "SMTP notifications",
+                all(
+                    [
+                        get_secret("SMTP_USERNAME"),
+                        get_secret("SMTP_PASSWORD"),
+                        get_secret("ALERT_RECEIVER_EMAIL"),
+                    ]
+                ),
+            ),
+        ]
+
+        for service, configured in services:
+            status = "Configured" if configured else "Not configured"
+            cls = "health-ok" if configured else "health-warning"
+
+            st.markdown(
+                f"""
+                <div class="health-row">
+                    <span>{service}</span>
+                    <span class="{cls}">{status}</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("<br>", unsafe_allow_html=True)
 
     st.markdown(
-        f'<div class="section-title">{lang["history_title"]}</div>',
+        """
+        <div class="panel-heading">
+            <div>
+                <h3>Activity history</h3>
+                <p>Audit-friendly application activity for the current session.</p>
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
-    user_history = [
-        log
-        for log in st.session_state.activity_log
-        if log["User"] == st.session_state.current_user
-    ]
-
-    if not user_history:
-        st.info("No activity has been recorded yet.")
-    else:
+    if st.session_state.activity_log:
         st.dataframe(
-            pd.DataFrame(user_history),
-            use_container_width=True,
+            pd.DataFrame(
+                st.session_state.activity_log[::-1]
+            ),
             hide_index=True,
+            use_container_width=True,
         )
+    else:
+        st.info("No activity recorded.")
 
 
 # ============================================================
-# 19. MAIN APPLICATION
+# 24. ENTERPRISE AUTHENTICATION
 # ============================================================
+
+def render_enterprise_login() -> None:
+    st.markdown(
+        """
+        <div class="login-page">
+            <div class="login-brand">
+                <div class="login-logo">♻</div>
+                <div>
+                    <div class="login-title">Madurai CleanAI</div>
+                    <div class="login-subtitle">
+                        Municipal waste intelligence platform
+                    </div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    left, center, right = st.columns(
+        [1, 1.05, 1]
+    )
+
+    with center:
+        if st.session_state.auth_mode == "login":
+            st.markdown(
+                """
+                <div class="login-card-enterprise">
+                    <h2>Sign in</h2>
+                    <p>Access the CleanAI operations workspace.</p>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            email = st.text_input(
+                "Email",
+                placeholder="admin@madurai.com",
+            )
+
+            password = st.text_input(
+                "Password",
+                type="password",
+            )
+
+            if st.button(
+                "Sign in",
+                type="primary",
+                use_container_width=True,
+            ):
+                if (
+                    email in st.session_state.users_db
+                    and st.session_state.users_db[email] == password
+                ):
+                    st.session_state.current_user = email
+                    st.rerun()
+                else:
+                    st.error(
+                        "Invalid email or password."
+                    )
+
+            if st.button(
+                "Create local demo account",
+                use_container_width=True,
+            ):
+                st.session_state.auth_mode = "signup"
+                st.rerun()
+
+            st.markdown(
+                "</div>",
+                unsafe_allow_html=True,
+            )
+
+        else:
+            st.markdown(
+                """
+                <div class="login-card-enterprise">
+                    <h2>Create account</h2>
+                    <p>Create a local development account.</p>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            new_email = st.text_input(
+                "Email",
+                placeholder="user@example.com",
+            )
+
+            new_password = st.text_input(
+                "Password",
+                type="password",
+            )
+
+            confirm_password = st.text_input(
+                "Confirm password",
+                type="password",
+            )
+
+            if st.button(
+                "Create account",
+                type="primary",
+                use_container_width=True,
+            ):
+                if not new_email or "@" not in new_email:
+                    st.error(
+                        "Enter a valid email address."
+                    )
+                elif len(new_password) < 8:
+                    st.error(
+                        "Password must contain at least 8 characters."
+                    )
+                elif new_password != confirm_password:
+                    st.error(
+                        "Passwords do not match."
+                    )
+                elif new_email in st.session_state.users_db:
+                    st.error(
+                        "An account with this email already exists."
+                    )
+                else:
+                    st.session_state.users_db[
+                        new_email
+                    ] = new_password
+                    st.session_state.current_user = new_email
+                    st.rerun()
+
+            if st.button(
+                "Back to sign in",
+                use_container_width=True,
+            ):
+                st.session_state.auth_mode = "login"
+                st.rerun()
+
+            st.markdown(
+                "</div>",
+                unsafe_allow_html=True,
+            )
+
+
+# ============================================================
+# 25. ENTERPRISE MAIN APPLICATION
+# ============================================================
+
+# Clean enterprise visual system.
+st.markdown(
+    f"""
+    <style>
+        :root {{
+            --primary: {COLORS["primary"]};
+            --primary-dark: {COLORS["primary_dark"]};
+            --text: {COLORS["text"]};
+            --muted: {COLORS["muted"]};
+            --border: {COLORS["border"]};
+            --surface: {COLORS["surface"]};
+        }}
+
+        .stApp {{
+            background: #F4F7F6;
+            color: var(--text);
+        }}
+
+        .main .block-container {{
+            max-width: 1440px;
+            padding-top: 2rem;
+            padding-bottom: 4rem;
+        }}
+
+        .sidebar-brand {{
+            display:flex;
+            align-items:center;
+            gap:11px;
+            margin-bottom:8px;
+        }}
+
+        .sidebar-logo {{
+            width:38px;
+            height:38px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:10px;
+            background:#E8F5EE;
+            color:#146C43;
+            font-size:1.25rem;
+            font-weight:700;
+        }}
+
+        .sidebar-name {{
+            color:#0F172A;
+            font-weight:700;
+            font-size:1.05rem;
+        }}
+
+        .sidebar-sub {{
+            color:#64748B;
+            font-size:.7rem;
+            margin-top:1px;
+        }}
+
+        .page-title {{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:20px;
+            margin-bottom:24px;
+        }}
+
+        .page-title h1 {{
+            margin:0;
+            color:#0F172A;
+            font-size:1.8rem;
+            line-height:1.2;
+            font-weight:750;
+            letter-spacing:-.025em;
+        }}
+
+        .page-title p {{
+            margin:6px 0 0;
+            color:#64748B;
+            font-size:.9rem;
+        }}
+
+        .live-status {{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            border:1px solid #D1FAE5;
+            background:#F0FDF4;
+            color:#166534;
+            border-radius:999px;
+            padding:7px 12px;
+            font-size:.75rem;
+            font-weight:600;
+            white-space:nowrap;
+        }}
+
+        .live-dot {{
+            width:7px;
+            height:7px;
+            border-radius:50%;
+            background:#16A34A;
+        }}
+
+        .kpi-card {{
+            background:#FFFFFF;
+            border:1px solid #E2E8F0;
+            border-radius:12px;
+            padding:16px 18px;
+            min-height:112px;
+            box-shadow:0 1px 2px rgba(15,23,42,.03);
+        }}
+
+        .kpi-top {{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }}
+
+        .kpi-label {{
+            color:#64748B;
+            font-size:.72rem;
+            font-weight:700;
+            text-transform:uppercase;
+            letter-spacing:.055em;
+        }}
+
+        .kpi-dot {{
+            width:8px;
+            height:8px;
+            border-radius:50%;
+        }}
+
+        .kpi-value {{
+            font-size:1.7rem;
+            font-weight:750;
+            margin-top:10px;
+            line-height:1.1;
+        }}
+
+        .kpi-helper {{
+            color:#94A3B8;
+            font-size:.72rem;
+            margin-top:7px;
+        }}
+
+        .panel-heading {{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:14px;
+            background:#FFFFFF;
+            border:1px solid #E2E8F0;
+            border-bottom:0;
+            border-radius:12px 12px 0 0;
+            padding:16px 18px 10px;
+        }}
+
+        .panel-heading h3 {{
+            margin:0;
+            color:#0F172A;
+            font-size:1rem;
+            font-weight:700;
+        }}
+
+        .panel-heading p {{
+            margin:4px 0 0;
+            color:#64748B;
+            font-size:.76rem;
+        }}
+
+        .step-badge {{
+            border:1px solid #BFDBFE;
+            background:#EFF6FF;
+            color:#1D4ED8;
+            border-radius:999px;
+            padding:5px 9px;
+            font-size:.64rem;
+            font-weight:700;
+        }}
+
+        .workflow-row {{
+            display:flex;
+            gap:12px;
+            align-items:flex-start;
+            background:#FFFFFF;
+            border:1px solid #E2E8F0;
+            border-top:0;
+            padding:13px 16px;
+        }}
+
+        .workflow-row:last-child {{
+            border-radius:0 0 12px 12px;
+        }}
+
+        .workflow-number {{
+            width:28px;
+            height:28px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:7px;
+            background:#F0FDF4;
+            color:#166534;
+            font-size:.7rem;
+            font-weight:700;
+            flex:0 0 28px;
+        }}
+
+        .workflow-title {{
+            color:#1E293B;
+            font-size:.82rem;
+            font-weight:700;
+        }}
+
+        .workflow-description {{
+            color:#64748B;
+            font-size:.72rem;
+            margin-top:2px;
+        }}
+
+        .location-confirm {{
+            background:#F0FDF4;
+            border:1px solid #BBF7D0;
+            color:#166534;
+            padding:8px 10px;
+            border-radius:8px;
+            font-size:.75rem;
+            margin:7px 0 12px;
+        }}
+
+        .analysis-note {{
+            display:flex;
+            justify-content:space-between;
+            gap:15px;
+            border:1px solid #DBEAFE;
+            background:#F8FAFC;
+            border-radius:8px;
+            padding:10px 12px;
+            margin:12px 0;
+            font-size:.73rem;
+        }}
+
+        .analysis-note strong {{
+            color:#334155;
+        }}
+
+        .analysis-note span {{
+            color:#64748B;
+        }}
+
+        .scope-item {{
+            background:#F8FAFC;
+            border:1px solid #E2E8F0;
+            border-radius:8px;
+            padding:9px 10px;
+            margin-bottom:7px;
+            color:#334155;
+            font-size:.78rem;
+        }}
+
+        .health-row {{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            border-bottom:1px solid #E2E8F0;
+            padding:12px 2px;
+            color:#334155;
+            font-size:.8rem;
+        }}
+
+        .health-ok {{
+            color:#166534;
+            background:#F0FDF4;
+            border:1px solid #BBF7D0;
+            padding:3px 7px;
+            border-radius:999px;
+            font-size:.65rem;
+            font-weight:700;
+        }}
+
+        .health-warning {{
+            color:#92400E;
+            background:#FFFBEB;
+            border:1px solid #FDE68A;
+            padding:3px 7px;
+            border-radius:999px;
+            font-size:.65rem;
+            font-weight:700;
+        }}
+
+        .info-box {{
+            background:#F8FAFC;
+            border:1px solid #E2E8F0;
+            border-radius:10px;
+            padding:13px;
+            color:#475569;
+            font-size:.77rem;
+            line-height:1.6;
+        }}
+
+        .login-page {{
+            max-width:560px;
+            margin:80px auto 20px;
+        }}
+
+        .login-brand {{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:13px;
+            margin-bottom:20px;
+        }}
+
+        .login-logo {{
+            width:48px;
+            height:48px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:12px;
+            background:#E8F5EE;
+            color:#146C43;
+            font-size:1.5rem;
+            font-weight:700;
+        }}
+
+        .login-title {{
+            font-size:1.45rem;
+            font-weight:750;
+            color:#0F172A;
+        }}
+
+        .login-subtitle {{
+            color:#64748B;
+            font-size:.76rem;
+            margin-top:2px;
+        }}
+
+        .login-card-enterprise {{
+            background:#FFFFFF;
+            border:1px solid #E2E8F0;
+            border-radius:14px;
+            padding:26px;
+            box-shadow:0 10px 30px rgba(15,23,42,.05);
+        }}
+
+        .login-card-enterprise h2 {{
+            color:#0F172A;
+            margin:0;
+            font-size:1.3rem;
+        }}
+
+        .login-card-enterprise > p {{
+            color:#64748B;
+            font-size:.82rem;
+            margin-top:5px;
+            margin-bottom:20px;
+        }}
+
+        /* Make Streamlit containers visually consistent with the application. */
+        div[data-testid="stVerticalBlockBorderWrapper"] {{
+            border-color:#E2E8F0 !important;
+            border-radius:12px !important;
+        }}
+
+        [data-testid="stDataFrame"] {{
+            border:1px solid #E2E8F0;
+            border-radius:10px;
+            overflow:hidden;
+        }}
+
+        [data-testid="stFileUploaderDropzone"] {{
+            background:#F8FAFC !important;
+            border-color:#CBD5E1 !important;
+            border-radius:10px !important;
+        }}
+
+        .stTextInput input,
+        .stTextArea textarea {{
+            background:#FFFFFF !important;
+            border-color:#CBD5E1 !important;
+            border-radius:8px !important;
+        }}
+
+        .stButton > button {{
+            border-radius:8px !important;
+            font-weight:600 !important;
+        }}
+
+        [data-testid="stTabs"] [data-baseweb="tab-list"] {{
+            gap:4px;
+            border-bottom:1px solid #E2E8F0;
+        }}
+
+        [data-testid="stTabs"] button[role="tab"] {{
+            font-size:.8rem;
+            font-weight:600;
+        }}
+
+        @media (max-width: 800px) {{
+            .page-title {{
+                flex-direction:column;
+            }}
+            .live-status {{
+                align-self:flex-start;
+            }}
+            .analysis-note {{
+                flex-direction:column;
+            }}
+        }}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 if st.session_state.current_user is None:
-    render_authentication()
+    render_enterprise_login()
     st.stop()
 
-render_sidebar()
-render_header()
+render_sidebar_enterprise()
 
-df_madurai = get_location_dataframe()
+tabs = st.tabs(
+    [
+        "Citizen Portal",
+        "Operations",
+        "Analytics",
+        "AI Assistant",
+        "Settings",
+    ]
+)
 
-menu = st.tabs(lang["tabs"])
+with tabs[0]:
+    render_citizen_enterprise()
 
-with menu[0]:
-    render_citizen_portal(df_madurai)
+with tabs[1]:
+    render_operations()
 
-with menu[1]:
-    render_command_center(df_madurai)
+with tabs[2]:
+    render_analytics_enterprise()
 
-with menu[2]:
-    render_analytics()
+with tabs[3]:
+    render_ai_enterprise()
 
-with menu[3]:
-    render_ai_assistant()
-
-with menu[4]:
-    render_settings()
+with tabs[4]:
+    render_settings_enterprise()
